@@ -1,0 +1,202 @@
+#:kivy 2.2.0
+ScreenManager:
+    MenuScreen:
+    MorningScreen:
+    EveningScreen:
+    ToDoScreen:
+
+<LoginScreen>:
+    name: "login"
+    username: username_input
+    MDTextField:
+        id: username_input
+        hint_text: "Enter username"
+        helper_text: "or click on forgot username"
+        helper_text_mode: "on_focus"
+        pos_hint: {"center_x":0.5, "center_y":0.5}
+        size_hint_x: None
+        width: 300
+    MDRectangleFlatButton:
+        text: "Login"
+        pos_hint: {"center_x":0.5,"center_y":0.4}
+        on_release: app.login_button_pressed()
+
+<MenuScreen>:
+    name: "menu"
+    MDRectangleFlatButton:
+        text: "GOOD MORNING"
+        pos_hint: {"center_x":0.5,"center_y":0.7}
+        size_hint: {0.5, 0.08}
+        on_release: app.morning_button_pressed()
+    MDRectangleFlatButton:
+        text: "GOOD NIGHT"
+        pos_hint: {"center_x":0.5,"center_y":0.6}
+        size_hint: {0.5, 0.08}
+        on_release: app.evening_button_pressed()
+    MDRectangleFlatButton:
+        text: "ADD TO-DO"
+        pos_hint: {"center_x":0.5,"center_y":0.5}
+        size_hint: {0.5, 0.08}
+        on_release: root.manager.current = "todo"
+    MDRectangleFlatButton:
+        text: "STATS"
+        pos_hint: {"center_x":0.5,"center_y":0.4}
+        size_hint: {0.5, 0.08}
+
+<MorningScreen>:
+    name: "morning"
+    MDTextField:
+        text: "Good Morning! Todays TO-DO's:"
+        pos_hint: {"center_x":0.5, "center_y":0.9}
+        pos_hint_x: None
+        halign: "center"
+        width: 500
+    ScrollView:
+        pos_hint: {"center_x": 0.5, "center_y": 0.4}
+        size_hint_y: 0.8
+        MDList:
+            id: container
+
+<EveningScreen>:
+    name: "evening"
+    slider_data: [weight_slider.value, walk_slider.value, exercise_slider.value, study_slider.value, read_slider.value]
+    switch_data: [meditation, ifast]
+
+    MDLabel:
+        text: "Weight: "
+        pos_hint: {"center_x":0.55, "center_y":0.8}
+
+    MDSlider:
+        id: weight_slider
+        max: 5
+        min: 0
+        pos_hint: {"center_x":0.6, "center_y":0.8}
+        hint: False
+        size_hint: 0.7, 0.1
+
+    MDLabel:
+        text: str(round(50 + weight_slider.value * 10, 1))
+        pos_hint: {"center_x":0.6,"center_y":0.85}
+        font_style: "H5"
+        halign: "center"
+
+
+    MDLabel:
+        text: "Walking: "
+        pos_hint: {"center_x":0.55, "center_y":0.7}
+
+    MDSlider:
+        id: walk_slider
+        max: 5
+        min: 0
+        pos_hint: {"center_x":0.6, "center_y":0.7}
+        hint: False
+        size_hint: 0.7, 0.1
+
+    MDLabel:
+        text: str(int(walk_slider.value))
+        pos_hint: {"center_x":0.6,"center_y":0.75}
+        font_style: "H5"
+        halign: "center"
+
+
+    MDLabel:
+        text: "Exercise: "
+        pos_hint: {"center_x":0.55, "center_y":0.6}
+
+    MDSlider:
+        id: exercise_slider
+        max: 5
+        min: 0
+        pos_hint: {"center_x":0.6, "center_y":0.6}
+        hint: False
+        size_hint: 0.7, 0.1
+
+    MDLabel:
+        text: str(int(exercise_slider.value))
+        pos_hint: {"center_x":0.6,"center_y":0.65}
+        font_style: "H5"
+        halign: "center"
+
+
+    MDLabel:
+        text: "Study: "
+        pos_hint: {"center_x":0.55, "center_y":0.5}
+
+    MDSlider:
+        id: study_slider
+        max: 5
+        min: 0
+        pos_hint: {"center_x":0.6, "center_y":0.5}
+        hint: False
+        size_hint: 0.7, 0.1
+
+    MDLabel:
+        text: str(int(study_slider.value))
+        pos_hint: {"center_x":0.6,"center_y":0.55}
+        font_style: "H5"
+        halign: "center"
+
+
+    MDLabel:
+        text: "Read: "
+        pos_hint: {"center_x":0.55, "center_y":0.4}
+
+    MDSlider:
+        id: read_slider
+        max: 5
+        min: 0
+        pos_hint: {"center_x":0.6, "center_y":0.4}
+        hint: False
+        size_hint: 0.7, 0.1
+
+    MDLabel:
+        text: str(int(read_slider.value))
+        pos_hint: {"center_x":0.6,"center_y":0.45}
+        font_style: "H5"
+        halign: "center"
+
+    MDLabel:
+        text: "Meditation:"
+        pos_hint: {"center_x":0.55, "center_y":0.3}
+    MDSwitch:
+        id: meditation
+        pos_hint: {"center_x":0.5, "center_y":0.3}
+
+    MDLabel:
+        text: "iFast:"
+        pos_hint: {"center_x":0.55, "center_y":0.2}
+    MDSwitch:
+        id: ifast
+        pos_hint: {"center_x":0.5, "center_y":0.2}
+
+    MDRectangleFlatButton:
+        text: "Submit"
+        pos_hint: {"center_x":0.5, "center_y":0.1}
+        on_release: app.submit_data_button_pressed()
+
+<ToDoScreen>:
+    name: "todo"
+    task: task_input
+    details: details_input
+    MDTextField:
+        id: task_input
+        hint_text: "Enter task"
+        pos_hint: {"center_x":0.5, "center_y":0.6}
+        size_hint_x: None
+        width: 300
+    MDTextField:
+        id: details_input
+        hint_text: "Enter details"
+        pos_hint: {"center_x":0.5, "center_y":0.5}
+        size_hint_x: None
+        width: 300
+
+    MDRectangleFlatButton:
+        text: "Add Task"
+        pos_hint: {"center_x":0.4,"center_y":0.4}
+        on_release: app.add_task_button_pressed()
+    MDRectangleFlatButton:
+        text: "Back"
+        pos_hint: {"center_x":0.6,"center_y":0.4}
+        on_release: app.root.current = "menu"
