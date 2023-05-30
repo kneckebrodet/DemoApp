@@ -6,15 +6,20 @@ class MongoDB:
         self.client = None
         self.db = None
 
-    def connect_to_localhost(self, database_name="localhost", collection_name=27017):
+    def connect_to_localhost(self, database_name="127.0.0.1", collection_name=27017):
         self.client = MongoClient(database_name, collection_name)
         # Choose database
         self.db = self.client.myappDB
         # Choose collection
+        self.user_collection = self.db.user_collection
         self.data_collection = self.db.data_collection
         self.todo_collection = self.db.todo_collection
         self.bedtime_collection = self.db.bedtime_collection
         self.wutime_collection = self.db.wutime_collection
+
+    def add_user(self, id, username):
+        user_data = {"userID":id, "username":username}
+        self.user_collection.insert_one(user_data)
 
     def add_data(self, collection, data):
         if collection == "data_collection":
@@ -26,19 +31,62 @@ class MongoDB:
         elif collection == "wutime_collection":
             self.wutime_collection.insert_one(data)
 
-    def get_bedtime(self):
+    def get_bedtime(self, id):
         # find yesterday bedtime
         yesterday = (datetime.now() - timedelta(days=1)).date().isoformat()
-        query = {yesterday: {'$exists': True}}
-        time = list(self.bedtime.find_one(query).items())[-1][-1]
-        return time
+        try:
+            time = self.bedtime_collection.find_one({"userID": id, "date":yesterday})["time"]
+            return time
+        except:
+            return None
+    
+    def get_wakeup_time(self, id):
+        today = str(datetime.now().date())
+        try:
+            time = self.wutime_collection.find_one({"userID": id, "date":today})["time"]
+            return time
+        except:
+            return None
 
-    def get_todo_list(self):
-        todolist = self.todo_collection.find({}, {"_id": 0})
-        todolist = list(todolist)
-        return todolist
+    def get_todo_list(self, id):
+        todolist = self.todo_collection.find({"userID":id}, {"_id": 0})
+        new_list = {}
+        for item in todolist:
+            new_list[item["task"]] = item["detail"]
+        return new_list
 
-#mongo = mongodb.MongoDB()
-#mongo.connect_to_localhost()
-#mongo.add_new_player("player_data")
-#list_of_players = mongo.get_list_of_players()
+    def get_user_list(self):
+        user_objects = self.user_collection.find({},{"_id": 0})
+        user_list = []
+        for obj in user_objects:
+            user_list.append(obj["username"])
+        return user_list
+    def get_id_list(self):
+        user_objects = self.user_collection.find({},{"_id": 0})
+        id_list = []
+        for obj in user_objects:
+            id_list.append(obj["userID"])
+        return id_list
+   
+    def get_id(self, username):
+        userobject = self.user_collection.find_one({"username":username})
+        return userobject["userID"]
+
+    def check_if_available(self, id, username):
+        userlist = self.get_user_list()
+        idlist = self.get_id_list()
+
+        if id == "" or username == "":
+            return False, "Please fill out all fields"
+        elif not id.isdigit():
+            return False, "User ID must be only digits"
+        elif id in idlist and username in userlist:
+            return False, "ID and Username already exist"
+        elif id in idlist:
+            return False, "ID already taken"
+        elif username in userlist:
+            return False, "Username already taken"
+        
+        else:
+            return True, f"Successfully added \"{username}\" to database"
+
