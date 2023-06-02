@@ -9,7 +9,7 @@ class MongoDB:
         self.db = None
 
     def connect_to_localhost(self, address="127.0.0.1", port = 27017):
-        #uri = "mongodb+srv://kneckebrodet:yJrVvEyUDONN@myappdb.j1cqx44.mongodb.net/?retryWrites=true&w=majority"
+        #uri = "mongodb+srv://<username>:<password>@myappdb.j1cqx44.mongodb.net/?retryWrites=true&w=majority"
         #self.client = MongoClient(uri)
         self.client = MongoClient(address, port)
 
