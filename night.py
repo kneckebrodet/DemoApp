@@ -4,7 +4,7 @@ from database import MongoDB
 class Night:
     def __init__(self, id, data):
         self.id = id
-        self.data_values = data # [weight(kg),walking(1-5),exercise(1-5),learn(1-5),read(1-5),
+        self.data_values = data # [weight(kg),walking(0-300),exercise(0-300),learn(0-300),read(0-300),
                          # meditation(true/false), ifast(true/false)]
 
         self.data_keys = ["weight", "walking", "exercise", "skillup", "reading", "meditation", "ifast"]
@@ -62,4 +62,4 @@ class Night:
             return f"{hour_diff - 1}:{60 - minute_diff}"
         else:
             return f"{hour_diff}:00"
-        
+
