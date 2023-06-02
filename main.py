@@ -37,6 +37,7 @@ class MenuButton(MDRectangleFlatButton):
     text = "Menu"
     pos_hint = {"center_x":0.5, "center_y":0.2}
 
+## ScreenManager
 sm = ScreenManager()
 sm.add_widget(LoginScreen(name="login"))
 sm.add_widget(MenuScreenAdmin(name="adminmenu"))
@@ -49,6 +50,7 @@ sm.add_widget(SetGraphScreen(name="setgraph"))
 sm.add_widget(GraphScreen(name="graph"))
 sm.add_widget(AddUserScreen(name="adduser"))
 
+## Set admins
 ADMINS = ["1"]
 
 class MyApp(MDApp):
@@ -56,7 +58,7 @@ class MyApp(MDApp):
         self.id = None
         self.graph_dates = []
         screen = Builder.load_file('ui.kv')
-        
+
         self.theme_cls.theme_style = "Dark"
 
         return screen
@@ -114,7 +116,7 @@ class MyApp(MDApp):
         for i in range(1, len(slider_data)):
             new_data.append(int(slider_data[i]))
 
-        # append all the switches status to list
+        # append all of the switches status to list
         for switch in switch_data:
             new_data.append(switch.active)
 
@@ -134,9 +136,25 @@ class MyApp(MDApp):
         db.connect_to_localhost()
         todolist = db.get_todo_list(self.id)
         for task, detail in todolist.items():
-            item = TwoLineListItem(text=task, secondary_text=detail)
+            item = TwoLineListItem(text=task, secondary_text=detail,on_press=lambda x: self.list_item_pressed(x.text))
             todo_list_container.add_widget(item)
         self.root.current = "todo"
+
+    def list_item_pressed(self, item_text):
+        close_button = MDFlatButton(text="Cancel", on_release=self.close_dialog)
+        remove_button = MDFlatButton(text="Remove", on_press=lambda x: self.remove_task(item_text))
+        self.dialog = MDDialog(title="Remove task", text=f"Do you wish to remove \'{item_text}\'",
+                            buttons=[remove_button, close_button])
+        self.dialog.open()
+
+    def remove_task(self, task_name):
+        db = MongoDB()
+        db.connect_to_localhost()
+        if db.remove_task_from_db(self.id, task_name):
+            self.dialog.dismiss()
+            self.update_todo_list()
+        else:
+            print("something went terribly wrong!")
 
     def new_task_button_pressed(self):
         self.root.get_screen("addtodo").ids.task_input.text = ""
@@ -175,10 +193,10 @@ class MyApp(MDApp):
 
         for date in date_range:
             self.graph_dates.append(str(date))
-            
+
     def on_cancel(self, instance, value):
         pass
-        
+
     def open_date_picker(self):
         date_dialog = MDDatePicker(mode="range")
         date_dialog.bind(on_save=self.get_date, on_cancel=self.on_cancel)
