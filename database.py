@@ -1,3 +1,5 @@
+#from pymongo.mongo_client import MongoClient
+#from pymongo.server_api import ServerApi
 from pymongo import MongoClient
 from datetime import datetime, timedelta
 
@@ -6,9 +8,11 @@ class MongoDB:
         self.client = None
         self.db = None
 
-    def connect_to_localhost(self, database_name="127.0.0.1", collection_name=27017):
-        self.client = MongoClient(database_name, collection_name)
-        # Choose database
+    def connect_to_localhost(self, address="127.0.0.1", port = 27017):
+        #uri = "mongodb+srv://kneckebrodet:yJrVvEyUDONN@myappdb.j1cqx44.mongodb.net/?retryWrites=true&w=majority"
+        #self.client = MongoClient(uri)
+        self.client = MongoClient(address, port)
+
         self.db = self.client.myappDB
         # Choose collection
         self.user_collection = self.db.user_collection
@@ -39,7 +43,7 @@ class MongoDB:
             return time
         except:
             return None
-    
+
     def get_wakeup_time(self, id):
         today = str(datetime.now().date())
         try:
@@ -61,13 +65,14 @@ class MongoDB:
         for obj in user_objects:
             user_list.append(obj["username"])
         return user_list
+
     def get_id_list(self):
         user_objects = self.user_collection.find({},{"_id": 0})
         id_list = []
         for obj in user_objects:
             id_list.append(obj["userID"])
         return id_list
-   
+
     def get_id(self, username):
         userobject = self.user_collection.find_one({"username":username})
         return userobject["userID"]
@@ -86,7 +91,17 @@ class MongoDB:
             return False, "ID already taken"
         elif username in userlist:
             return False, "Username already taken"
-        
+
         else:
             return True, f"Successfully added \"{username}\" to database"
 
+    def remove_task_from_db(self, id, task):
+        deletion_criteria = {
+            "userID": id,
+            "task": task
+        }
+        try:
+            self.todo_collection.delete_one(deletion_criteria)
+            return 1
+        except:
+            return 0
