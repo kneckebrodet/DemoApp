@@ -20,7 +20,7 @@ ScreenManager:
         #helper_text: "helper message"
         #helper_text_mode: "on_focus"
         pos_hint: {"center_x":0.5, "center_y":0.5}
-        size_hint_x: None
+        size_hint_x: 0.6
         width: 300
     MDRectangleFlatButton:
         text: "Login"
@@ -114,12 +114,12 @@ ScreenManager:
         theme_text_color: "Custom"
         text_color: 128/255, 126/255, 121/255,1
         pos_hint: {"center_x":0.5, "center_y":0.8}
-        font_size: 50
+        font_size: min(root.width, root.height) / 10
         halign: "center"
     MDLabel:
         id: wake_up_time
         pos_hint: {"center_x":0.5, "center_y":0.5}
-        font_size: 200
+        font_size: min(root.width, root.height) / 5
         halign: "center"
     MenuButton:
         on_release: app.menu_button_pressed()
@@ -139,7 +139,7 @@ ScreenManager:
         hint: False
         size_hint: 0.7, 0.1
     MDLabel:
-        text: str(round(50 + weight_slider.value * 10, 1))
+        text: f"{round(50 + weight_slider.value * 10, 1)} kg"
         pos_hint: {"center_x":0.6,"center_y":0.85}
         font_style: "H5"
         halign: "center"
@@ -148,13 +148,13 @@ ScreenManager:
         pos_hint: {"center_x":0.55, "center_y":0.7}
     MDSlider:
         id: walk_slider
-        max: 5
+        max: 300
         min: 0
         pos_hint: {"center_x":0.6, "center_y":0.7}
         hint: False
         size_hint: 0.7, 0.1
     MDLabel:
-        text: str(int(walk_slider.value))
+        text: f"{int(walk_slider.value) // 60}h {int(walk_slider.value) % 60}m"
         pos_hint: {"center_x":0.6,"center_y":0.75}
         font_style: "H5"
         halign: "center"
@@ -163,13 +163,13 @@ ScreenManager:
         pos_hint: {"center_x":0.55, "center_y":0.6}
     MDSlider:
         id: exercise_slider
-        max: 5
+        max: 300
         min: 0
         pos_hint: {"center_x":0.6, "center_y":0.6}
         hint: False
         size_hint: 0.7, 0.1
     MDLabel:
-        text: str(int(exercise_slider.value))
+        text: f"{int(exercise_slider.value) // 60}h {int(exercise_slider.value) % 60}m"
         pos_hint: {"center_x":0.6,"center_y":0.65}
         font_style: "H5"
         halign: "center"
@@ -178,13 +178,13 @@ ScreenManager:
         pos_hint: {"center_x":0.55, "center_y":0.5}
     MDSlider:
         id: skillup_slider
-        max: 5
+        max: 300
         min: 0
         pos_hint: {"center_x":0.6, "center_y":0.5}
         hint: False
         size_hint: 0.7, 0.1
     MDLabel:
-        text: str(int(skillup_slider.value))
+        text: f"{int(skillup_slider.value) // 60}h {int(skillup_slider.value) % 60}m"
         pos_hint: {"center_x":0.6,"center_y":0.55}
         font_style: "H5"
         halign: "center"
@@ -193,13 +193,13 @@ ScreenManager:
         pos_hint: {"center_x":0.55, "center_y":0.4}
     MDSlider:
         id: read_slider
-        max: 5
+        max: 300
         min: 0
         pos_hint: {"center_x":0.6, "center_y":0.4}
         hint: False
         size_hint: 0.7, 0.1
     MDLabel:
-        text: str(int(read_slider.value))
+        text: f"{int(read_slider.value) // 60}h {int(read_slider.value) % 60}m"
         pos_hint: {"center_x":0.6,"center_y":0.45}
         font_style: "H5"
         halign: "center"
@@ -277,7 +277,7 @@ ScreenManager:
     MDLabel:
         id: date_label
         text: ""
-        font_size: 30
+        font_size: min(root.width, root.height) / 20
         pos_hint: {"center_y":0.85}
         halign: "center"
     MDRaisedButton:
@@ -286,35 +286,35 @@ ScreenManager:
         on_release: app.open_date_picker()
     BoxLayout:
         orientation:"vertical"
-        pos_hint: {"center_x":0.5,"top":0.83}
+        pos_hint: {"center_x":0.5,"top":0.75}
         GridLayout:
             cols: 2
             row_default_height: 90
             row_force_default: True
             MDLabel:
                 text: "Walking"
-                font_size: 35
+                font_size: min(root.width, root.height) / 14
                 halign: "center"
             CheckBox:
                 id: walking_box
                 halign: "left"
             MDLabel:
                 text: "Exercising"
-                font_size: 35
+                font_size: min(root.width, root.height) / 14
                 halign: "center"
             CheckBox:
                 id: exercise_box
                 halign: "left"
             MDLabel:
                 text: "Skill-Up"
-                font_size: 35
+                font_size: min(root.width, root.height) / 14
                 halign: "center"
             CheckBox:
                 id: skillup_box
                 halign: "left"
             MDLabel:
                 text: "Reading"
-                font_size: 35
+                font_size: min(root.width, root.height) / 14
                 halign: "center"
             CheckBox:
                 id: reading_box
@@ -327,7 +327,7 @@ ScreenManager:
     MenuButton:
         pos_hint: {"center_x":0.65, "center_y":0.1}
         on_release: app.menu_button_pressed()
-    
+
 
 <GraphScreen>:
     name: "graph"
@@ -339,14 +339,15 @@ ScreenManager:
             orientation:"vertical"
             size_hint_y: None
             height: self.minimum_height
+            width: self.minimum_width
             Image:
                 id: img1
                 size_hint_y: None
-                height: self.texture_size[1]
+                height: self.texture_size[1] * 0.5
             Image:
                 id: img2
                 size_hint_y: None
-                height: self.texture_size[1]
+                height: self.texture_size[1] * 0.5
     MenuButton:
         pos_hint: {"center_x":0.5, "center_y":0.1}
         on_release: app.menu_button_pressed()
@@ -356,23 +357,21 @@ ScreenManager:
     new_user_id: id_input
     new_user_username: username_input
     MDTextField:
-        id: id_input
-        hint_text: "Enter ID"
-        pos_hint: {"center_x":0.5, "center_y":0.6}
-        size_hint_x: None
-        width: 300
-    MDTextField:
         id: username_input
         hint_text: "Enter username"
+        pos_hint: {"center_x":0.5, "center_y":0.6}
+        size_hint_x: 0.6
+    MDTextField:
+        id: id_input
+        hint_text: "Enter ID"
         pos_hint: {"center_x":0.5, "center_y":0.5}
-        size_hint_x: None
-        width: 300
+        size_hint_x: 0.3
 
     MDRectangleFlatButton:
         text: "Add User"
-        pos_hint: {"center_x":0.5,"center_y":0.3}
-        on_release: app.add_user_button_pressed()
-    MDRectangleFlatButton:
-        text: "Back"
         pos_hint: {"center_x":0.5,"center_y":0.2}
-        on_release: app.root.current = "menu"
+        on_release: app.add_user_button_pressed()
+    MenuButton:
+        pos_hint: {"center_x":0.5, "center_y":0.1}
+        on_release: app.menu_button_pressed()
+
