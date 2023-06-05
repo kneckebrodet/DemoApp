@@ -331,41 +331,34 @@ ScreenManager:
 
 <GraphScreen>:
     name: "graph"
-    AnchorLayout:
-        orientation: "vertical"
-        anchor_x: "center"
-        anchor_y: "top"
-        BoxLayout:
-            orientation:"vertical"
-            size_hint_y: None
-            height: self.minimum_height
-            width: self.minimum_width
-            Image:
-                id: img1
-                size_hint_y: None
-                height: self.texture_size[1] * 0.5
-            Image:
-                id: img2
-                size_hint_y: None
-                height: self.texture_size[1] * 0.5
+    BoxLayout:
+        id: bx1
+        size_hint_y: 0.4
+        pos_hint: {"top":1}
+        orientation:"vertical"
+    BoxLayout:
+        id: bx2
+        size_hint_y: 0.4
+        pos_hint: {"top":0.58}
+        orientation:"vertical"
     MenuButton:
         pos_hint: {"center_x":0.5, "center_y":0.1}
         on_release: app.menu_button_pressed()
 
 <AddUserScreen>:
     name: "adduser"
-    new_user_id: id_input
     new_user_username: username_input
+    #new_user_pw: pw_input
     MDTextField:
         id: username_input
         hint_text: "Enter username"
         pos_hint: {"center_x":0.5, "center_y":0.6}
         size_hint_x: 0.6
-    MDTextField:
-        id: id_input
-        hint_text: "Enter ID"
-        pos_hint: {"center_x":0.5, "center_y":0.5}
-        size_hint_x: 0.3
+    #MDTextField:
+    #    id: pw_input
+    #    hint_text: "Enter password"
+    #    pos_hint: {"center_x":0.5, "center_y":0.5}
+    #    size_hint_x: 0.3
 
     MDRectangleFlatButton:
         text: "Add User"
@@ -374,4 +367,3 @@ ScreenManager:
     MenuButton:
         pos_hint: {"center_x":0.5, "center_y":0.1}
         on_release: app.menu_button_pressed()
-
