@@ -6,9 +6,9 @@ from kivymd.uix.list import TwoLineListItem
 from kivymd.uix.pickers import MDDatePicker
 from kivy.lang.builder import Builder
 import datetime
+from database import MySQL
 from morning import Morning
 from night import Night
-from database import MongoDB
 from graph import Graph
 
 class LoginScreen(Screen):
@@ -51,7 +51,7 @@ sm.add_widget(GraphScreen(name="graph"))
 sm.add_widget(AddUserScreen(name="adduser"))
 
 ## Set admins
-ADMINS = ["1"]
+ADMINS = [1]
 
 class MyApp(MDApp):
     def build(self):
@@ -62,16 +62,14 @@ class MyApp(MDApp):
         self.theme_cls.theme_style = "Dark"
 
         return screen
-
+    
     ### LOG IN ###
     def login_button_pressed(self):
         self.username = self.root.get_screen("login").username.text
-        db = MongoDB()
-        db.connect_to_localhost()
-        list_of_users = db.get_user_list()
-        if self.username in list_of_users:
-            self.id = db.get_id(self.username)
-            if self.username == "lucas":
+        db = MySQL()
+        user_valid, self.id = db.check_user_login(self.username)
+        if user_valid:
+            if self.id in ADMINS:
                 self.root.current = "adminmenu"
             else:
                 self.root.current = "menu"
@@ -124,7 +122,6 @@ class MyApp(MDApp):
 
         self.menu_button_pressed()
 
-
     ### TO-DO ###
     def todo_button_pressed(self):
         self.update_todo_list()
@@ -132,8 +129,7 @@ class MyApp(MDApp):
     def update_todo_list(self):
         todo_list_container = self.root.get_screen("todo").ids.container
         todo_list_container.clear_widgets()
-        db = MongoDB()
-        db.connect_to_localhost()
+        db = MySQL()
         todolist = db.get_todo_list(self.id)
         for task, detail in todolist.items():
             item = TwoLineListItem(text=task, secondary_text=detail,on_press=lambda x: self.list_item_pressed(x.text))
@@ -148,8 +144,7 @@ class MyApp(MDApp):
         self.dialog.open()
 
     def remove_task(self, task_name):
-        db = MongoDB()
-        db.connect_to_localhost()
+        db = MySQL()
         if db.remove_task_from_db(self.id, task_name):
             self.dialog.dismiss()
             self.update_todo_list()
@@ -174,12 +169,11 @@ class MyApp(MDApp):
                                 buttons=[close_button])
             self.dialog.open()
         else:
-            db = MongoDB()
-            db.connect_to_localhost()
-            db.add_data("todo_collection", {"userID":self.id,"task":task,"detail":detail})
+            db = MySQL()
+            db.add_data("todo_table", {"userID":self.id,"task":task,"detail":detail})
 
 
-    ### GRAPH ###
+    #### GRAPH ###
     def graph_button_pressed(self):
         last_week = f"{datetime.date.today()- datetime.timedelta(days=6)} ~ {datetime.date.today()}"
         self.root.get_screen("setgraph").ids.date_label.text = last_week + " (7 days)"
@@ -203,8 +197,8 @@ class MyApp(MDApp):
         date_dialog.open()
 
     def get_graph_input_button_pressed(self):
-        self.root.get_screen("graph").ids.img1.clear_widgets()
-        self.root.get_screen("graph").ids.img2.clear_widgets()
+        self.root.get_screen("graph").ids.bx1.clear_widgets()
+        self.root.get_screen("graph").ids.bx2.clear_widgets()
         checkboxes = self.root.get_screen("setgraph").box_data
         target_values = []
         for box in checkboxes:
@@ -230,22 +224,19 @@ class MyApp(MDApp):
         Graph(self, self.id, self.graph_dates, targets_only)
         self.root.current = "graph"
 
-
     ### ADD USER ###
     def add_user_button_pressed(self):
-        new_user_id = self.root.get_screen("adduser").new_user_id.text
         new_user_username = self.root.get_screen("adduser").new_user_username.text
-        inputs = [new_user_id, new_user_username]
-        db = MongoDB()
-        db.connect_to_localhost()
+        #new_user_pw = self.root.get_screen("adduser").new_user_pw.text
+        db = MySQL()
 
-        is_available, message = db.check_if_available(new_user_id, new_user_username)
+        is_available, message = db.check_if_available(new_user_username)
         if is_available == False:
             self.add_user_dialog("Something Went Wrong", message)
         else:
-            db.add_user(new_user_id, new_user_username)
+            db.add_user(new_user_username)
             self.add_user_dialog("User Successfully Added", message)
-            self.root.current = "menu"
+            self.menu_button_pressed()
 
     def add_user_dialog(self, title_msg, text_msg):
         close_button = MDFlatButton(text="Close", on_release=self.close_dialog)
