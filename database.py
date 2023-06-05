@@ -1,107 +1,132 @@
-#from pymongo.mongo_client import MongoClient
-#from pymongo.server_api import ServerApi
-from pymongo import MongoClient
+import mysql.connector
 from datetime import datetime, timedelta
 
-class MongoDB:
+class MySQL:
     def __init__(self):
-        self.client = None
-        self.db = None
+        self.db = mysql.connector.connect(
+            user='appuser',
+            password='thebestapp',
+            host='60.116.168.19',
+            database='myappDB'
+        )
 
-    def connect_to_localhost(self, address="127.0.0.1", port = 27017):
-        #uri = "mongodb+srv://<username>:<password>@myappdb.j1cqx44.mongodb.net/?retryWrites=true&w=majority"
-        #self.client = MongoClient(uri)
-        self.client = MongoClient(address, port)
+        self.cursor = self.db.cursor()
 
-        self.db = self.client.myappDB
-        # Choose collection
-        self.user_collection = self.db.user_collection
-        self.data_collection = self.db.data_collection
-        self.todo_collection = self.db.todo_collection
-        self.bedtime_collection = self.db.bedtime_collection
-        self.wutime_collection = self.db.wutime_collection
+    def check_user_login(self, username):
+        self.cursor.execute("SELECT * FROM user_table")
+        all_users = self.cursor.fetchall()
+        user_in_db = False
+        userid = None
+        for user_object in all_users:
+            if username in user_object:
+                user_in_db = True
+                userid = user_object[0]
+                break
+        
+        if user_in_db:
+            return True, userid
+        else:
+            return False, None
+        
+    def check_if_entry_exists(self, id, table, date):
+        query = "SELECT COUNT(*) FROM {} WHERE userID = %s AND date = %s".format(table)
+        self.cursor.execute(query,(id,date))
+        exists = self.cursor.fetchone()
+        if exists[0]:
+            return True
+        else:
+            return False
 
-    def add_user(self, id, username):
-        user_data = {"userID":id, "username":username}
-        self.user_collection.insert_one(user_data)
+    def add_data(self, table, data):
+        columns = ', '.join(data.keys())
+        placeholders = ', '.join(['%s'] * len(data))
+        values = tuple(data.values())
 
-    def add_data(self, collection, data):
-        if collection == "data_collection":
-            self.data_collection.insert_one(data)
-        elif collection == "todo_collection":
-            self.todo_collection.insert_one(data)
-        elif collection == "bedtime_collection":
-            self.bedtime_collection.insert_one(data)
-        elif collection == "wutime_collection":
-            self.wutime_collection.insert_one(data)
+        query = "INSERT INTO {} ({}) VALUES ({})".format(table, columns, placeholders)
 
-    def get_bedtime(self, id):
-        # find yesterday bedtime
-        yesterday = (datetime.now() - timedelta(days=1)).date().isoformat()
-        try:
-            time = self.bedtime_collection.find_one({"userID": id, "date":yesterday})["time"]
-            return time
-        except:
-            return None
+        self.cursor.execute(query, values)
+        self.db.commit()
 
     def get_wakeup_time(self, id):
         today = str(datetime.now().date())
         try:
-            time = self.wutime_collection.find_one({"userID": id, "date":today})["time"]
-            return time
+            query = f"SELECT time FROM wutime_table WHERE userID = {id} AND date = '{today}'"
+            self.cursor.execute(query)
+            return self.cursor.fetchone()[0]
+        except:
+            return None
+        
+    def get_bedtime(self,id):
+        yesterday = (datetime.now() - timedelta(days=1)).date().isoformat()
+        try:
+            query = f"SELECT time FROM wutime_table WHERE userID = {id} AND date = '{yesterday}'"
+            self.cursor.execute(query)
+            return self.cursor.fetchone()[0]
         except:
             return None
 
+    def update_data(self, id, table, data):
+        today = str(datetime.now().date())
+        # Construct the SET clause with the columns and new values
+        set_clause = ", ".join([f"{key} = '{value}'" for key, value in data.items()])
+        set_clause = set_clause.replace("False", "0")
+        set_clause = set_clause.replace("True", "1")
+
+        query = f"UPDATE {table} SET {set_clause} WHERE userID = {id} AND date = '{today}'"
+        
+        self.cursor.execute(query)
+        # Commit the changes to the database
+        self.db.commit()
+
     def get_todo_list(self, id):
-        todolist = self.todo_collection.find({"userID":id}, {"_id": 0})
-        new_list = {}
-        for item in todolist:
-            new_list[item["task"]] = item["detail"]
-        return new_list
+        query = f"SELECT task, detail FROM todo_table WHERE userID = {id}"
+        self.cursor.execute(query)
+        results = self.cursor.fetchall()
 
-    def get_user_list(self):
-        user_objects = self.user_collection.find({},{"_id": 0})
-        user_list = []
-        for obj in user_objects:
-            user_list.append(obj["username"])
-        return user_list
+        todo_list = {}
+        for row in results:
+            task, detail = row
+            todo_list[task] = detail
 
-    def get_id_list(self):
-        user_objects = self.user_collection.find({},{"_id": 0})
-        id_list = []
-        for obj in user_objects:
-            id_list.append(obj["userID"])
-        return id_list
-
-    def get_id(self, username):
-        userobject = self.user_collection.find_one({"username":username})
-        return userobject["userID"]
-
-    def check_if_available(self, id, username):
-        userlist = self.get_user_list()
-        idlist = self.get_id_list()
-
-        if id == "" or username == "":
-            return False, "Please fill out all fields"
-        elif not id.isdigit():
-            return False, "User ID must be only digits"
-        elif id in idlist and username in userlist:
-            return False, "ID and Username already exist"
-        elif id in idlist:
-            return False, "ID already taken"
-        elif username in userlist:
-            return False, "Username already taken"
-
-        else:
-            return True, f"Successfully added \"{username}\" to database"
-
-    def remove_task_from_db(self, id, task):
-        deletion_criteria = {
-            "userID": id,
-            "task": task
-        }
+        return todo_list
+    
+    def remove_task_from_db(self, id, task_name):
         try:
-            self.todo_collection.delete_one(deletion_criteria)
+            query = f"DELETE FROM todo_table WHERE userID = {id} AND task = '{task_name}'"
+            self.cursor.execute(query)
+            self.db.commit()
             return 1
         except:
             return 0
+
+    def get_stat(self, id, date, key):
+        query = f"SELECT {key} FROM data_table WHERE userID = {id} AND date = '{date}'"
+        self.cursor.execute(query)
+        result = self.cursor.fetchone()
+        return result[0]
+    
+    def check_if_available(self, username, password=""):
+        self.cursor.execute("SELECT username FROM user_table")
+        all_users = self.cursor.fetchall()
+        username_is_available = False
+        for user in all_users:
+            if username in user:
+                username_is_available = False
+                break
+            else:
+                username_is_available = True
+
+        if username == "": #or password == "":
+            return False, "Please fill out all fields"
+        elif not username_is_available:
+            return False, f"\"{username}\" is already taken"
+        else:
+
+            return True, f"Successfully added \"{username}\" to database"
+
+    def add_user(self, username, password=""):
+        query = f"INSERT INTO user_table (username, password) VALUES (%s, NULL)"
+        new_user = (username,)
+
+        self.cursor.execute(query, new_user)
+        self.db.commit()
