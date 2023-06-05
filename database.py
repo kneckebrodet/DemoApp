@@ -4,10 +4,10 @@ from datetime import datetime, timedelta
 class MySQL:
     def __init__(self):
         self.db = mysql.connector.connect(
-            user='appuser',
-            password='thebestapp',
-            host='60.116.168.19',
-            database='myappDB'
+            user='user',
+            password='password',
+            host='address',
+            database='database'
         )
 
         self.cursor = self.db.cursor()
